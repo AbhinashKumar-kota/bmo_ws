@@ -1,0 +1,155 @@
+<?xml version="1.0" ?>
+<!--
+  BMO Single Source World
+
+  4 Crazyflie drones (cf0-cf3) + 1 tungsten lamp signal source.
+  Used to validate that the BMO algorithm correctly drives all drones
+  toward the single signal source.
+
+  Drone starting positions (spread in a 2x2 grid):
+    cf0: (-1, -1)  bottom-left
+    cf1: ( 1, -1)  bottom-right
+    cf2: (-1,  1)  top-left
+    cf3: ( 1,  1)  top-right
+
+  Lamp position: (3, 0, 0.3) — offset to the right, 0.3m height (tabletop)
+
+  The LightIntensitySensor world plugin computes illuminance for each drone
+  and publishes on /model/{drone_name}/light_intensity.
+-->
+<sdf version="1.8">
+  <world name="bmo_single_source">
+
+    <!-- =============================================================== -->
+    <!-- Physics: 1ms step, real-time factor 1.0                         -->
+    <!-- =============================================================== -->
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <!-- =============================================================== -->
+    <!-- Required Gazebo system plugins                                  -->
+    <!-- =============================================================== -->
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system"
+            name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <!-- =============================================================== -->
+    <!-- LightIntensitySensor: our custom world plugin                   -->
+    <!-- Computes tungsten lamp illuminance for each drone.              -->
+    <!-- Loaded from bmo_gz_plugins shared library.                      -->
+    <!-- =============================================================== -->
+    <plugin filename="LightIntensitySensor"
+            name="bmo_gz_plugins::LightIntensitySensor">
+      <!-- Drone model names (must match <name> in <include> below) -->
+      <drone_models>cf0 cf1 cf2 cf3</drone_models>
+      <!-- Lamp position: x y z (single source) -->
+      <source_positions>3.0 0.0 0.3</source_positions>
+      <!-- Lamp power in watts -->
+      <source_powers>60.0</source_powers>
+      <!-- Tungsten lamp luminous efficacy at ~2700K -->
+      <luminous_efficacy>15.0</luminous_efficacy>
+      <!-- LDR sensor noise (Gaussian std dev in lux) -->
+      <noise_stddev>0.5</noise_stddev>
+      <!-- Sensor saturation limit -->
+      <max_reading>10000.0</max_reading>
+      <!-- Publish rate in Hz -->
+      <update_rate>10.0</update_rate>
+    </plugin>
+
+    <!-- =============================================================== -->
+    <!-- Lighting                                                        -->
+    <!-- =============================================================== -->
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <!-- =============================================================== -->
+    <!-- Ground plane                                                    -->
+    <!-- =============================================================== -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- =============================================================== -->
+    <!-- Signal source: 1 tungsten lamp                                  -->
+    <!-- This is a visual marker only — intensity is computed by plugin.  -->
+    <!-- =============================================================== -->
+    <include>
+      <uri>model://tungsten_lamp</uri>
+      <name>lamp_0</name>
+      <pose>3.0 0.0 0.3 0 0 0</pose>
+    </include>
+
+    <!-- =============================================================== -->
+    <!-- Drones: 4 Crazyflies, each with its own robotNamespace.         -->
+    <!-- Models cf0-cf3 are identical except <robotNamespace> is set     -->
+    <!-- to cf0, cf1, cf2, cf3 respectively, so each gets unique topics. -->
+    <!-- =============================================================== -->
+    <include>
+      <uri>model://cf0</uri>
+      <name>cf0</name>
+      <pose>-1.0 -1.0 0.0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://cf1</uri>
+      <name>cf1</name>
+      <pose>1.0 -1.0 0.0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://cf2</uri>
+      <name>cf2</name>
+      <pose>-1.0 1.0 0.0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://cf3</uri>
+      <name>cf3</name>
+      <pose>1.0 1.0 0.0 0 0 0</pose>
+    </include>
+
+  </world>
+</sdf>

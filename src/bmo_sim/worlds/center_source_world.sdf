@@ -1,0 +1,122 @@
+<?xml version="1.0" ?>
+<!--
+  BMO Center Source World
+
+  4 Crazyflie drones (cf0-cf3) + 1 tungsten lamp at the CENTER, elevated to 1.0m.
+  Drones start in a square around the lamp, take off to 0.5m, then converge
+  and climb toward the lamp.
+
+  Drone starting positions (square around origin):
+    cf0: (-1, -1)  bottom-left
+    cf1: ( 1, -1)  bottom-right
+    cf2: (-1,  1)  top-left
+    cf3: ( 1,  1)  top-right
+
+  Lamp position: (0, 0, 1.0) — dead center, 1 meter high
+-->
+<sdf version="1.8">
+  <world name="bmo_center_source">
+
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system"
+            name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <!-- LightIntensitySensor: lamp at center, 1m high -->
+    <plugin filename="LightIntensitySensor"
+            name="bmo_gz_plugins::LightIntensitySensor">
+      <drone_models>cf0 cf1 cf2 cf3</drone_models>
+      <source_positions>0.0 0.0 1.0</source_positions>
+      <source_powers>60.0</source_powers>
+      <luminous_efficacy>15.0</luminous_efficacy>
+      <noise_stddev>0.5</noise_stddev>
+      <max_reading>10000.0</max_reading>
+      <update_rate>10.0</update_rate>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Lamp at center, 1m high -->
+    <include>
+      <uri>model://tungsten_lamp</uri>
+      <name>lamp_0</name>
+      <pose>0.0 0.0 1.0 0 0 0</pose>
+    </include>
+
+    <!-- 4 Crazyflies in a square around the lamp -->
+    <include>
+      <uri>model://cf0</uri>
+      <name>cf0</name>
+      <pose>-1.0 -1.0 0.0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://cf1</uri>
+      <name>cf1</name>
+      <pose>1.0 -1.0 0.0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://cf2</uri>
+      <name>cf2</name>
+      <pose>-1.0 1.0 0.0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://cf3</uri>
+      <name>cf3</name>
+      <pose>1.0 1.0 0.0 0 0 0</pose>
+    </include>
+
+  </world>
+</sdf>

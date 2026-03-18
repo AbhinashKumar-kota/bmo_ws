@@ -1,0 +1,17 @@
+# -----------------------------------------------------------------------
+# BMO Algorithm Parameters
+#
+# These control the behavior of the Butterfly Mating Optimization.
+# Tuned for the single-source scenario with 4 Crazyflies.
+#
+# Reference: Butterfly Mating Optimization paper
+# -----------------------------------------------------------------------
+bmo_coordinator:
+  ros__parameters:
+    n_agents: 4              # Number of Crazyflie drones
+    b1: 0.0                  # Previous UV weight (0 = no memory, pure reactive)
+    b2: 3.0                  # Current fitness weight (higher = more reactive to sensor)
+    step_size: 0.1           # Movement speed B_s in m/s
+    iteration_rate: 10.0     # BMO iteration frequency (Hz)
+    hover_height: 0.5        # Target flight altitude (meters)
+    drone_prefix: "cf"       # Namespace prefix (cf0, cf1, cf2, cf3)
